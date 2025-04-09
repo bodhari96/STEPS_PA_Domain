@@ -1,0 +1,738 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2821
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\froman\fcharset0 TimesNewRomanPS-BoldMT;\f1\fswiss\fcharset0 Helvetica;\f2\froman\fcharset0 TimesNewRomanPSMT;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\b\fs32 \cf2 \expnd0\expndtw0\kerning0
+Variable Processing and Transformation Details
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 This appendix describes the data processing steps applied to raw survey datasets to generate the cleaned dataset (combined_df_cleaned_mod_new.csv) used in the analysis. The process involved loading, renaming, recoding, standardizing, cleaning, deriving variables, and subsetting data from multiple versions of the WHO STEP survey (1.3, 1.4, 2.0, 2.1, 2.2, 3.0, 3.1, 3.2), culminating in a dataset of approximately 493,000 observations.
+\f1 \
+
+\f2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 1. Data Loading and Initial Setup
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Source
+\f2\b0 : Raw CSV files from country-specific surveys were loaded into a list (list_of_dfs) using read.csv() from the tidyverse package. Dataframes were named based on filenames (e.g., "afg2018" for Afghanistan 2018) via tools::file_path_sans_ext(basename(file_list)).
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 Metadata Extraction
+\f2\b0 : Country (ISO3 code) and year were extracted from filenames using extract_metadata(). Non-standard codes (e.g., "alg" to "dza", "bvi" to "vgb") were mapped, and special cases (e.g., "MDG205sub" as Madagascar 2005, "lbn2017" as Lebanon 2017) were handled explicitly.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 2. Variable Renaming and Initial Standardization
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Version Mapping
+\f2\b0 : Each dataset was assigned a version (1.3\'963.2) using a predefined version_map (e.g., "afg2018" = 3.2, "alg2003sub" = 2.0), reflecting survey format differences.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Renaming
+\f2\b0 : Variables were renamed to standardized names using var_map within standardize_df() (e.g., "c1" to "sex", "m3" or "m11" to "height"). Version-specific mappings ensured consistency across surveys. For versions 1.3 and 1.4, additional corrections were applied (e.g., "m16a" to "heart_rate_1").
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Inconsistent Naming
+\f2\b0 : Duplicates (e.g., "c1" vs. "sex") were resolved by prioritizing standardized names and dropping originals (e.g., select(-c1) if "sex" existed).
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Unique Identifier
+\f2\b0 : A unique_id was created as paste(country, year, pid, sep = "_"), with pid derived from "pid", "id", or "i4", defaulting to NA_character_ if absent.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+
+\f2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 3. Variable Recoding and Type Conversion
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Initial Recoding in 
+\f2\b0 standardize_df():
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Sex
+\f2\b0 : Recoded to "1" (male) or "2" (female) from variants (e.g., "male", "men"), others as NA; factored with levels "1", "2".
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Education
+\f2\b0 : Recoded to "1"\'96"7" (e.g., "1" = no schooling, "4" = secondary completed, skipping "5"), others as NA; factored.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Marital Status
+\f2\b0 : Recoded to "1"\'96"6" (e.g., "1" = never married, "6" = cohabiting), others as NA; factored.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Occupation
+\f2\b0 : Recoded to "1"\'96"9", others as NA; factored.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Smoking Status
+\f2\b0 : Recoded to "1" (smoker) or "2" (non-smoker) from variants (e.g., "0" as "2"), others as NA; factored.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Alcohol Status
+\f2\b0 : Recoded to "1" (drinker) or "2" (non-drinker) from variants (e.g., "0" as "2"), others as NA; factored.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Numeric Variables
+\f2\b0 : Converted to numeric (e.g., "age", "height", "sbp_1"), with non-numeric values coerced to NA via as.numeric().
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Final Recoding in 
+\f2\b0 all_df:
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Sex
+\f2\b0 : Further cleaned to "1" (male) or "2" (female), with "0" mapped to "2" (female), others as NA; factored.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Age
+\f2\b0 : Values < 15 set to NA.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Education
+\f2\b0 : Recoded to "1"\'96"7", others as "missing_unknown"; factored with "missing_unknown".
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Marital Status
+\f2\b0 : Recoded to "1"\'96"6", values 7, 8, 88, 99, or Inf to "missing_unknown"; factored with "missing_unknown".
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Occupation
+\f2\b0 : Recoded to "1"\'96"9", others (including 0, 10\'9620, 77, 88, 95, 99, Inf) to "missing_unknown"; factored with "missing_unknown".
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Smoking Status
+\f2\b0 : Recoded to "1" or "2", values 0, 3\'967, 77, 8, 9, 99, or Inf to "missing_unknown"; factored with "missing_unknown".
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Alcohol Status
+\f2\b0 : Recoded to "1" or "2", values 0, 3, 7, 77, 8, 88, 9, 99, or Inf to "missing_unknown"; factored with "missing_unknown".
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Physical Activity (PA) Variables
+\f2\b0 :
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 p1, p4, p7, p10, p13: Recoded to "1" or "2", others to "missing_unknown"; factored.
+\f1 \
+
+\f2 p2, p5, p8, p11, p14: Recoded to "0"\'96"7", others to "missing_unknown"; factored.
+\f1 \
+
+\f2 p3a, p6a, p9a, p12a, p15a: Recoded to "0"\'96"18", others to "missing_unknown"; factored, later converted to numeric.
+\f1 \
+
+\f2 p3b, p6b, p9b, p12b, p15b: Recoded to "0"\'96"60", others to "missing_unknown"; factored, later converted to numeric.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 \'a0
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Diet Variables
+\f2\b0 :
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 d1 (fruit_freq), d3 (veg_freq): Recoded to "0"\'96"7", others to "missing_unknown"; factored, later converted to numeric.
+\f1 \
+
+\f2 d2 (fruit_serv_day), d4 (veg_serv_day): Recoded to 0\'9615 (including decimals), others to "missing_unknown"; factored, later converted to numeric.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 \'a0
+\f1\b0 \
+
+\f0\b Fasting Status (b1)
+\f2\b0 : Recoded to "1" (fasted) or "2" (non-fasted), others (e.g., 0, 5, 7, 22, 77, 8, 9, 99, Inf) to "missing_unknown"; factored.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 4. Merging and Column Selection
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Column Selection
+\f2\b0 : Retained a subset of relevant columns (e.g., "sex", "age", "height", "total_chol", "sbp_1"\'96"sbp_3", "b1") using select_relevant_columns(), adding missing columns as NA_character_. 
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 Merging
+\f2\b0 : Combined into all_df via bind_rows(), initially as character, then converting numeric (e.g., "age", "sbp_1") and factor (e.g., "sex", "b1") columns post-merge.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 5. Derived Variables
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Height
+\f2\b0 : Converted from cm to meters (height_m = height / 100).
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b BMI
+\f2\b0 : Calculated as weight / (height_m^2); winsorized to 12\'9660 by adjusting weight.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Obese
+\f2\b0 : Binary factor: "1" (BMI > 30), "2" (BMI \uc0\u8804  30).
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 \'a0
+\f1\b0 \
+
+\f0\b Physical Activity (PA)
+\f2\b0 : Converted PA factors to numeric, treating "missing_unknown" as NA.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Vigorous Work (vig_work)
+\f2\b0 : (p3a * 60 + p3b) * p2 if p1 = "1", else 0 or NA.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Moderate Work (mod_work)
+\f2\b0 : (p6a * 60 + p6b) * p5 if p4 = "1", else 0 or NA.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Travel Activity (travel)
+\f2\b0 : (p9a * 60 + p9b) * p8 if p7 = "1", else 0 or NA.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Vigorous Leisure (vig_leisure)
+\f2\b0 : (p12a * 60 + p12b) * p11 if p10 = "1", else 0 or NA.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Moderate Leisure (mod_leisure)
+\f2\b0 : (p15a * 60 + p15b) * p14 if p13 = "1", else 0 or NA.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Occupational MVPA (omvpa)
+\f2\b0 : vig_work + mod_work, NA if both inputs are NA.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Leisure-Time MVPA (ltmvpa)
+\f2\b0 : vig_leisure + mod_leisure, NA if both inputs are NA.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Non-Occupational PA (nonocpa)
+\f2\b0 : travel + ltmvpa, NA if both inputs are NA.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Total MVPA (total_mvpa)
+\f2\b0 : omvpa + nonocpa, NA if both inputs are NA.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Meet PA (meet_pa)
+\f2\b0 : "1" (\uc0\u8805 150 min/week), "0" (<150 min/week).
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Active
+\f2\b0 : "1" (total_mvpa > 0), "0" (total_mvpa = 0); factored.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Active Occupational (active_omvpa)
+\f2\b0 : "1" (omvpa > 0), "0" otherwise; factored.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Active Non-Occupational (active_nonocpa)
+\f2\b0 : "1" (nonocpa > 0), "0" otherwise; factored.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Log Ratio
+\f2\b0 : log((omvpa + 1e-6) / (total_mvpa + 1e-6)).
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 \'a0
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Diet
+\f2\b0 :
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\fs32 Converted diet factors to numeric, treating "missing_unknown" as NA.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Total Servings/Week
+\f2\b0 : (fruit_freq * fruit_serv_day) + (veg_freq * veg_serv_day).
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Average Servings/Day
+\f2\b0 : total_servings_week / 7.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 Meet Eat
+\f2\b0 : "1" (\uc0\u8805 5 servings/day), "2" (<5 servings/day), "missing_unknown" if NA; factored.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 \'a0
+\f1\b0 \
+
+\f0\b Weight Class
+\f2\b0 : Categorized BMI into "1" (<18.5), "2" (18.5\'9624.9), "3" (25\'9629.9), "4" (\uc0\u8805 30); factored.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\f0\b\fs32 BMI_group
+\f2\b0 : WHO classification ("Underweight" <18.5, "Normal" 18.5\'9624.9, "Overweight" 25\'9629.9, "Obese" \uc0\u8805 30), "missing_unknown" if NA; factored.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 \'a0
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b 6. Cleaning and Winsorization
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Infinite Values
+\f2\b0 : Numeric Inf replaced with NA; string "inf" in character columns as NA_character_.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Implausible Values
+\f2\b0 : Filtered values (666, 666.6, 666.66, 77, 777, 777.7, 777.77, 888, 888.8, 888.88, 99.99, 999, 999.9, 999.99, Inf, >500) across "height", "weight", "sbp_1"\'96"sbp_3", "dbp_1"\'96"dbp_3", "heart_rate_1"\'96"heart_rate_3", "fasting_glucose", "total_chol" to NA using replace_implausible() with tolerance for floating-point comparison.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Assumption on Heart Rate Variables for Specific Countries
+\f2\b0 : For versions 1.3 and 1.4 in Mozambique, Cameroon, DRC, C\'f4te d'Ivoire, and Madagascar, heart rate data were coded as "m16a", "m16b", "m16c" (not "m8a", "m8b", "m8c" as expected). These were assumed to be harmonized during data collection and treated as equivalent to "heart_rate_1", "heart_rate_2", and "heart_rate_3", with the same cleaning applied.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 Winsorization
+\f2\b0 :
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Height
+\f2\b0 : <1st percentile to 1st percentile, >99th percentile capped at 230 cm; initial bounds 50\'96250 cm.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Weight
+\f2\b0 : <1st percentile to 1st percentile, >99th percentile capped at 250 kg; initial bounds 20\'96300 kg.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b BMI
+\f2\b0 : Adjusted weight to enforce 12\'9660, recalculated as weight / (height_m^2).
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Fasting Glucose
+\f2\b0 : Converted mixed units (mg/dL if >20 to mmol/L via * 0.0555, mmol/L if 1.1\'9620) to fasting_glucose_mmol (<1.1 or >55.5 to NA); final value set to fasting_glucose_mmol.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Total Cholesterol
+\f2\b0 : Converted mixed units (mg/dL if >40 to mmol/L via * 0.02586, mmol/L if 1\'9612.93) to total_chol_mmol (<1 or >12.93 to NA); final value set to total_chol_mmol.
+\f1 \
+
+\f0\b SBP/DBP (3 readings)
+\f2\b0 :
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\fs32 Filters: SBP >190, <70, >180 with DBP >90, SBP < DBP, pulse pressure <20 or >120 to NA; DBP >110, <40 to NA.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\fs32 Winsorized: sbp_ll_* to 70, sbp_ul_* to 190, dbp_ll_* to 40, dbp_ul_* to 110 if out of bounds or NA.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 \'a0
+\f1\b0 \
+
+\f0\b Heart Rate
+\f2\b0 : <30 or >130 bpm to NA; hr_ll_* to 30, hr_ul_* to 130 if out of bounds or NA.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Physical Activity
+\f2\b0 :
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\fs32 Components (vig_work, mod_work, travel, vig_leisure, mod_leisure) filtered: >8,000 min/week to NA.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\fs32 Derived variables recalculated: omvpa, ltmvpa, nonocpa, total_mvpa.
+\f1 \
+
+\f2 \'95
+\fs18\fsmilli9333 \'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 
+\fs32 All PA variables (omvpa, travel, ltmvpa, nonocpa, total_mvpa) filtered: >8,000 min/week to NA, winsorized <0 to 0, >99th percentile capped at 99th percentile.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 \'a0
+\f1\b0 \
+
+\f0\b Final Values
+\f2\b0 :
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b SBP/DBP
+\f2\b0 : Selected lowest plausible SBP from sbp_1\'96sbp_3 (sbp) with paired DBP (dbp) using pmin(), ensuring pulse pressure 20\'96120 mmHg; all-NA cases set to NA.
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Heart Rate
+\f2\b0 : Lowest plausible value from heart_rate_1\'96heart_rate_3 (hr) within 30\'96130 bpm using pmin(), all-NA cases set to NA.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 7. Subsetting
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Fasting Status
+\f2\b0 : b1 recoded ("1" and "2" kept, others to "missing_unknown"); (b1 = "1", not fasted).
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 8. External Data Integration
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Population
+\f2\b0 : Merged 2022 population data from "2022_population.xlsx" via new_country (ISO3 to country name via countrycode); updated for Niue (2,000), Tokelau (1,647), Cook Islands (7,761), Wallis & Futuna (15,964).
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Income Classification
+\f2\b0 : Merged 2022 World Bank income groups from "world-bank-income-groups.xlsx"; added Cook Islands, Niue, Tokelau, Wallis & Futuna as "Low-income countries".
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Region
+\f2\b0 : Assigned based on iso3_code (e.g., "Sub-Saharan Africa", "South and Southeast Asia") using predefined lists (e.g., "AFG" in "Central and East Asia").
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+
+\f2 \'a0
+\f1 \
+
+\f2 \'a0
+\f1 \
+
+\f2 \'a0
+\f1 \
+
+\f2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 9. Diagnostics
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Initial Diagnostics
+\f2\b0 : Applied to list_of_dfs_selected by country-year, generating histograms (plot_numeric), bar plots (plot_categorical), and summaries (summarize_numeric, summarize_categorical) for variables (e.g., "total_chol", "fasting_glucose"); output to "diagnostics/[country_year]/" folders. Non-numeric values in numeric columns were flagged.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 10. Final Output
+\f1\b0 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Dataset
+\f2\b0 : Saved as combined_df_cleaned_mod_new.csv using write_csv().
+\f1 \
+
+\f0\b \'a0
+\f1\b0 \
+
+\f0\b Notes
+\f2\b0 :
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 Units
+\f2\b0 : fasting_glucose and total_chol started as mixed units (mg/dL if >20 or >40, mmol/L otherwise), standardized to mmol/L during winsorization.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 Plausibility
+\f2\b0 : Final ranges reflect clinical norms (e.g., BMI 12\'9660, HR 30\'96130 bpm), with initial implausible values (e.g., 666, >500) removed.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b \cf2 Missing Data
+\f2\b0 : Non-numeric values coerced to NA; "missing_unknown" category used for categorical variables; outcome variables (sbp, dbp, fasting_glucose, total_chol, bmi, hr) vary in availability by analysis.
+\f1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2 \cf2 \'a0
+\f1 \
+
+\f2 \'a0
+\f1 \
+}
